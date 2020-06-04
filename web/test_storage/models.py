@@ -5,6 +5,7 @@
 from django.db import models
 from datetime import datetime
 
+# TODO: django-adaptors doesn't support python3, switch to https://github.com/edcrewe/django-csvimport
 from adaptor.model import CsvModel
 from adaptor import fields as csv_fields
 
@@ -12,7 +13,7 @@ from adaptor import fields as csv_fields
 class SourceFile(models.Model):
     """Логи jmeter."""
     file = models.FileField(upload_to='source_files/%d.%m.%y')
-    test = models.ForeignKey('Test', blank=True, null=True)
+    test = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True, null=True)
 
     def __unicode__(self):
         return self.file.name
@@ -32,7 +33,7 @@ class Test(models.Model):
 
 class JMRequest(models.Model):
     """Запись запроса в логе. (Одна строка из лога)"""
-    source = models.ForeignKey('SourceFile')
+    source = models.ForeignKey('SourceFile', on_delete=models.CASCADE)
     timeStamp = models.DateTimeField()
     elapsed = models.PositiveIntegerField()
     label = models.CharField(max_length=255)
