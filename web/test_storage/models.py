@@ -23,12 +23,50 @@ class SourceFile(models.Model):
         JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
 
 
+class Project(models.Model):
+    name = models.CharField('Наименование', max_length=30)
+
+
+class TestPlan(models.Model):
+    name = models.CharField('Наименование', max_length=30)
+    description_url = models.URLField('Ссылка на описание', blank=True, help_text='wiki')
+    documents_url = models.URLField('Документы', blank=True, help_text='Ссылка на sharepoint (МНТ и Отчеты)')
+    scripts_url = models.URLField('Ссылка на скрипты', blank=True, help_text='GitLab')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
+
+
 class Test(models.Model):
     """Итерация тестирования."""
 
-    name = models.CharField(max_length=30)
-    start_time = models.DateTimeField(blank=True)
-    end_time = models.DateTimeField(blank=True)
+    name = models.CharField('Наименование', max_length=30)
+    start_time = models.DateTimeField('Дата начала', blank=True)
+    end_time = models.DateTimeField('Дата окончания', blank=True)
+    result = models.TextField('Краткие результаты', blank=True)
+    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE, blank=True, null=True)
+    task = models.URLField('Задача', blank=True)
+    artefacts = models.URLField('Ссылка на артефакты', blank=True)
+    load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
+                                           help_text='Указываем только станции с которых подавалась нагрузка.')
+
+    class Meta:
+        verbose_name = 'Тест'
+        verbose_name_plural = 'Тесты'
+
+
+class TestPhase(models.Model):
+    name = models.CharField('Наименование', max_length=30, help_text='Например, "Рост", "Удержание", "Снижение"')
+    start_time = models.DateTimeField('Время начала', blank=True)
+    end_time = models.DateTimeField('Время окончания', blank=True)
+    testplan = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True)
+
+
+class LoadStation(models.Model):
+    """
+    Станции с которых проводился НТ.
+    """
+    hostname = models.CharField('Hostname', max_length=30)
+    has_horizon_agent = models.BooleanField('Является агентом')
+
 
 
 class JMRequest(models.Model):
