@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # vim: fileencoding=utf-8
 
+import _csv
+
 from django.db import models
 from django.conf import settings
 from datetime import datetime
@@ -12,16 +14,37 @@ from adaptor import fields as csv_fields
 
 
 class RawLogsFile(models.Model):
-    """Логи jmeter."""
+    """
+    "Сырые", необработанные логи НТ.
+    """
     file = models.FileField(upload_to='raw_logs/%d.%m.%y')
-    test = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True, null=True)
+    test = models.ForeignKey('Test', on_delete=models.CASCADE)
 
     def __unicode__(self):
         return self.file.name
 
+    class Meta:
+        abstract = True
+        verbose_name = 'Файл логов НТ'
+        verbose_name_plural = 'Файлы логов НТ'
+
+
+class JMeterRawLogsFile(RawLogsFile):
+
     def save(self, *args, **kwargs):
         super(RawLogsFile, self).save(*args, **kwargs)
-        JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
+        try:
+            JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
+        except _csv.Error:
+            # TODO Дописать автоматическое разархивирование JMeterLog
+            pass
+
+    def __str__(self):
+        return self.file.name
+
+    class Meta:
+        verbose_name = 'Файл логов JMeter'
+        verbose_name_plural = 'Файлы логов JMeter'
 
 
 class Account(models.Model):
@@ -29,10 +52,14 @@ class Account(models.Model):
     Аккаунт проекта.
     """
     name = models.CharField('Наименование', max_length=30)
-    description = models.TextField('Описание', null=True)
+    description = models.TextField('Описание', blank=True)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = 'Аккаунт'
+        verbose_name_plural = 'Аккаунты'
 
 
 class Project(models.Model):
@@ -60,6 +87,10 @@ class TestPlan(models.Model):
     scripts_url = models.URLField('Ссылка на скрипты', blank=True, help_text='GitLab')
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = 'Тест-план'
+        verbose_name_plural = 'Тест-планы'
+
 
 class Test(models.Model):
     """
@@ -71,9 +102,11 @@ class Test(models.Model):
     result = models.TextField('Краткие результаты', blank=True)
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE, blank=True, null=True)
     task = models.URLField('Задача', blank=True)
-    artefacts = models.URLField('Ссылка на артефакты', blank=True)
+    artifacts = models.URLField('Ссылка на артефакты', blank=True)
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.')
+
+    description = models.TextField('Описание', blank=True)
 
     # TODO Добавить возможность расширять результаты теста на разных проектах разными артефактами
     #   Например так чтобы можно было добавить ссылки на дефекты производительности, заведенные по результатам теста.
@@ -96,6 +129,10 @@ class TestPhase(models.Model):
     end_time = models.DateTimeField('Время окончания', blank=True)
     testplan = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True)
 
+    class Meta:
+        verbose_name = 'Фаза теста'
+        verbose_name_plural = 'Фазы теста'
+
 
 class LoadStation(models.Model):
     """
@@ -104,10 +141,14 @@ class LoadStation(models.Model):
     hostname = models.CharField('Hostname', max_length=30)
     has_horizon_agent = models.BooleanField('Является агентом')
 
+    class Meta:
+        verbose_name = 'Нагрузочная станция'
+        verbose_name_plural = 'Нагрузочные станции'
+
 
 class JMRequest(models.Model):
     """Запись запроса в логе. (Одна строка из лога)"""
-    source = models.ForeignKey('test_storage.RawLogsFile', on_delete=models.CASCADE)
+    source = models.ForeignKey('test_storage.JMeterRawLogsFile', on_delete=models.CASCADE)
     timeStamp = models.DateTimeField()
     elapsed = models.PositiveIntegerField()
     label = models.CharField(max_length=255)

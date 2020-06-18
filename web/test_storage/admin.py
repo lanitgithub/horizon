@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import RawLogsFile
+from .models import JMeterRawLogsFile
 from .models import Test
-from .models import JMRequest
 from .models import TestPlan
 from .models import Project
 from .models import TestPhase
@@ -12,11 +11,20 @@ from .models import Account
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'account')
 
+
+class TestAdmin(admin.ModelAdmin):
+    fieldsets = [
+        (None,               {'fields': ['name', 'description']}),
+        ('Время теста', {'fields': ['start_time', 'end_time']}),
+        ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
+        ('Результаты теста', {'fields': ['result', 'artifacts']}),
+        ('Управление проектом', {'fields': ['task', 'user']}),
+    ]
+
 # Register your models here.
 admin.site.register(Account)
-admin.site.register(RawLogsFile)
-admin.site.register(Test)
-admin.site.register(JMRequest)
+admin.site.register(JMeterRawLogsFile)
+admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(TestPhase)
