@@ -24,9 +24,33 @@ class SourceFile(models.Model):
         JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
 
 
+class Account(models.Model):
+    """
+    Аккаунт проекта.
+    """
+    name = models.CharField('Наименование', max_length=30)
+    description = models.TextField('Описание', null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Project(models.Model):
+    # TODO Добавить возможность фильтрации проектов по Аккаунту
+    # TODO Добавить возможность фильтрации проектов по владельцу (Свои/Чужие)
+    # TODO Добавить возможность разграничения доступа (чтобы тестировщики могли видеть только свои проекты)
+
     key = models.CharField('Алиас', max_length=10, unique=True, null=False, blank=False)
     name = models.CharField('Наименование', max_length=30)
+    account = models.ForeignKey('Account', on_delete=models.CASCADE, blank=True, null=True)
+    description = models.TextField('Описание', blank=True)
+
+    def __str__(self):
+        return f'{self.name} ({self.key})'
+
+    class Meta:
+        verbose_name = 'Проект'
+        verbose_name_plural = 'Проекты'
 
 
 class TestPlan(models.Model):
@@ -38,8 +62,9 @@ class TestPlan(models.Model):
 
 
 class Test(models.Model):
-    """Итерация тестирования."""
-
+    """
+    Итерация тестирования.
+    """
     name = models.CharField('Наименование', max_length=30)
     start_time = models.DateTimeField('Дата начала', blank=True)
     end_time = models.DateTimeField('Дата окончания', blank=True)
@@ -49,6 +74,9 @@ class Test(models.Model):
     artefacts = models.URLField('Ссылка на артефакты', blank=True)
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.')
+
+    # TODO Добавить возможность расширять результаты теста на разных проектах разными артефактами
+    #   Например так чтобы можно было добавить ссылки на дефекты производительности, заведенные по результатам теста.
 
     # TODO Запретить удаление пользователей, иначе тесты удалятся каскадом
     user = models.ForeignKey(
