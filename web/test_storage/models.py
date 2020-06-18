@@ -3,6 +3,7 @@
 # vim: fileencoding=utf-8
 
 from django.db import models
+from django.conf import settings
 from datetime import datetime
 
 # TODO: django-adaptors doesn't support python3, switch to https://github.com/edcrewe/django-csvimport
@@ -24,6 +25,7 @@ class SourceFile(models.Model):
 
 
 class Project(models.Model):
+    key = models.CharField('Алиас', max_length=10, unique=True, null=False, blank=False)
     name = models.CharField('Наименование', max_length=30)
 
 
@@ -47,6 +49,13 @@ class Test(models.Model):
     artefacts = models.URLField('Ссылка на артефакты', blank=True)
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.')
+
+    # TODO Запретить удаление пользователей, иначе тесты удалятся каскадом
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name='Тест инженер проводивший тест',
+    )
 
     class Meta:
         verbose_name = 'Тест'
