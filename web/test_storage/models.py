@@ -11,16 +11,16 @@ from adaptor.model import CsvModel
 from adaptor import fields as csv_fields
 
 
-class SourceFile(models.Model):
+class RawLogsFile(models.Model):
     """Логи jmeter."""
-    file = models.FileField(upload_to='source_files/%d.%m.%y')
+    file = models.FileField(upload_to='raw_logs/%d.%m.%y')
     test = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True, null=True)
 
     def __unicode__(self):
         return self.file.name
 
     def save(self, *args, **kwargs):
-        super(SourceFile, self).save(*args, **kwargs)
+        super(RawLogsFile, self).save(*args, **kwargs)
         JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
 
 
@@ -105,10 +105,9 @@ class LoadStation(models.Model):
     has_horizon_agent = models.BooleanField('Является агентом')
 
 
-
 class JMRequest(models.Model):
     """Запись запроса в логе. (Одна строка из лога)"""
-    source = models.ForeignKey('SourceFile', on_delete=models.CASCADE)
+    source = models.ForeignKey('test_storage.RawLogsFile', on_delete=models.CASCADE)
     timeStamp = models.DateTimeField()
     elapsed = models.PositiveIntegerField()
     label = models.CharField(max_length=255)
@@ -144,7 +143,7 @@ class JMCsvModel(CsvModel):
     def digit(value):
         return value if value.isdigit() else 0
 
-    source = csv_fields.DjangoModelField(SourceFile)
+    source = csv_fields.DjangoModelField(RawLogsFile)
     timeStamp = CSVMyDateField(format='timestamp', prepare=ms_to_sec)
     elapsed = csv_fields.IntegerField()
     label = csv_fields.CharField()
