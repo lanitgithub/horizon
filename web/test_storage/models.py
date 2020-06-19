@@ -8,7 +8,7 @@ from django.db import models
 from django.conf import settings
 from datetime import datetime
 
-# TODO: django-adaptors doesn't support python3, switch to https://github.com/edcrewe/django-csvimport
+# TODO: django-adaptors doesn't support python3, switch to https://github.com/edcrewe/django-csvimport  <p:0>
 from adaptor.model import CsvModel
 from adaptor import fields as csv_fields
 
@@ -36,7 +36,7 @@ class JMeterRawLogsFile(RawLogsFile):
         try:
             JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
         except _csv.Error:
-            # TODO Дописать автоматическое разархивирование JMeterLog
+            # TODO Дописать автоматическое разархивирование JMeterLog <p:0>
             pass
 
     def __str__(self):
@@ -63,9 +63,9 @@ class Account(models.Model):
 
 
 class Project(models.Model):
-    # TODO Добавить возможность фильтрации проектов по Аккаунту
-    # TODO Добавить возможность фильтрации проектов по владельцу (Свои/Чужие)
-    # TODO Добавить возможность разграничения доступа (чтобы тестировщики могли видеть только свои проекты)
+    # TODO Добавить возможность фильтрации проектов по Аккаунту(Заказчику) <p:1>
+    # TODO Добавить возможность фильтрации проектов по владельцу (Свои/Чужие) <p:1>
+    # TODO Добавить возможность разграничения доступа (чтобы тестировщики могли видеть только свои проекты) <p:1>
 
     key = models.CharField('Алиас', max_length=10, unique=True, null=False, blank=False)
     name = models.CharField('Наименование', max_length=30)
@@ -107,21 +107,22 @@ class Test(models.Model):
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
-    # TODO Добавить фильтрацию станций с привязкой к Аккаунту или к Проекту
+    # TODO Добавить фильтрацию станций с привязкой к Аккаунту или к Проекту <p:3>
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.')
     system_version = models.TextField('Версия системы')
 
-    # TODO Переделать на то чтобы они автоматически подтягивались из Фаз теста
+    # TODO Переделать на то чтобы метрики Теста (RPS, Error rate,...) автоматически подтягивались из Фаз теста <p:1>
     rps_avg = models.FloatField('Avg RPS', blank=True, null=True)
     response_time_avg = models.FloatField('Среднее время отклика, сек', blank=True, null=True)
     errors_pct = models.FloatField('% ошибок', blank=True, null=True)
     successful = models.BooleanField('Успешность теста', blank=True, null=True)
 
     # TODO Добавить возможность расширять результаты теста на разных проектах разными артефактами
-    #   Например так чтобы можно было добавить ссылки на дефекты производительности, заведенные по результатам теста.
+    #   Например, чтобы можно было добавить ссылки на дефекты производительности, заведенные по
+    #   результатам теста. <p:1>
 
-    # TODO Запретить удаление пользователей, иначе тесты удалятся каскадом
+    # TODO Запретить удаление пользователей, иначе тесты удалятся каскадом <p:1>
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -138,7 +139,7 @@ class Test(models.Model):
 
 class TestPhase(models.Model):
     name = models.CharField('Наименование', max_length=30, help_text='Например, "Рост", "Удержание", "Снижение"')
-    # TODO Добавить возможность указания часового пояса
+    # TODO Добавить возможность указания часового пояса <p:1>
     start_time = models.DateTimeField('Время начала', blank=True)
     end_time = models.DateTimeField('Время окончания', blank=True)
     testplan = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True)
