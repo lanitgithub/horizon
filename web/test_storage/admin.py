@@ -17,9 +17,11 @@ class TestAdmin(admin.ModelAdmin):
         (None,               {'fields': ['name', 'description']}),
         ('Время теста', {'fields': ['start_time', 'end_time']}),
         ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
-        ('Результаты теста', {'fields': ['result', 'artifacts']}),
+        ('Результаты теста', {'fields': ['result', 'artifacts', 'rps_avg', 'response_time_avg', 'errors_pct',
+                                         'successful']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
+    save_on_top = True
 
 # Register your models here.
 admin.site.register(Account)

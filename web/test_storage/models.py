@@ -87,6 +87,9 @@ class TestPlan(models.Model):
     scripts_url = models.URLField('Ссылка на скрипты', blank=True, help_text='GitLab')
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         verbose_name = 'Тест-план'
         verbose_name_plural = 'Тест-планы'
@@ -96,17 +99,24 @@ class Test(models.Model):
     """
     Итерация тестирования.
     """
-    name = models.CharField('Наименование', max_length=30)
-    start_time = models.DateTimeField('Дата начала', blank=True)
-    end_time = models.DateTimeField('Дата окончания', blank=True)
+    name = models.CharField('Наименование', max_length=100)
+    description = models.TextField('Описание', blank=True)
+    start_time = models.DateTimeField('Дата начала', blank=True, null=True)
+    end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
-    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE, blank=True, null=True)
+    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
+    # TODO Добавить фильтрацию станций с привязкой к Аккаунту или к Проекту
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.')
+    system_version = models.TextField('Версия системы')
 
-    description = models.TextField('Описание', blank=True)
+    # TODO Переделать на то чтобы они автоматически подтягивались из Фаз теста
+    rps_avg = models.FloatField('Avg RPS', blank=True, null=True)
+    response_time_avg = models.FloatField('Среднее время отклика, сек', blank=True, null=True)
+    errors_pct = models.FloatField('% ошибок', blank=True, null=True)
+    successful = models.BooleanField('Успешность теста', blank=True, null=True)
 
     # TODO Добавить возможность расширять результаты теста на разных проектах разными артефактами
     #   Например так чтобы можно было добавить ссылки на дефекты производительности, заведенные по результатам теста.
@@ -118,6 +128,9 @@ class Test(models.Model):
         verbose_name='Тест инженер проводивший тест',
     )
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         verbose_name = 'Тест'
         verbose_name_plural = 'Тесты'
@@ -125,6 +138,7 @@ class Test(models.Model):
 
 class TestPhase(models.Model):
     name = models.CharField('Наименование', max_length=30, help_text='Например, "Рост", "Удержание", "Снижение"')
+    # TODO Добавить возможность указания часового пояса
     start_time = models.DateTimeField('Время начала', blank=True)
     end_time = models.DateTimeField('Время окончания', blank=True)
     testplan = models.ForeignKey('Test', on_delete=models.CASCADE, blank=True)
@@ -144,6 +158,9 @@ class LoadStation(models.Model):
     class Meta:
         verbose_name = 'Нагрузочная станция'
         verbose_name_plural = 'Нагрузочные станции'
+
+    def __str__(self):
+        return self.hostname
 
 
 class JMRequest(models.Model):
