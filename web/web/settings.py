@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
-    'test_storage'
+    'test_storage',
+    'daterangefilter'
 ]
 
 MIDDLEWARE = [
