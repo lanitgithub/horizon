@@ -22,9 +22,11 @@ class TestForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(TestForm, self).__init__(*args, **kwargs)
-        customer = self.instance.testplan.project.customer
-        if customer:
-            self.fields['load_stations'].queryset = LoadStation.objects.filter(customer=customer)
+        instance = self.instance
+        if not instance._state.adding:
+            if instance and instance.testplan and instance.testplan.project.customer:
+                customer = instance.testplan.project.customer
+                self.fields['load_stations'].queryset = LoadStation.objects.filter(customer=customer)
 
 
 class TestAdmin(admin.ModelAdmin):
