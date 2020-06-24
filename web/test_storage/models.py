@@ -8,7 +8,7 @@ from django.db import models
 from django.conf import settings
 from datetime import datetime
 
-# TODO: django-adaptors doesn't support python3, switch to https://github.com/edcrewe/django-csvimport  <p:0>
+# TODO: django-adaptors не поддерживает python3, переключиться на использование https://github.com/edcrewe/django-csvimport  <p:0>
 from adaptor.model import CsvModel
 from adaptor import fields as csv_fields
 
@@ -47,9 +47,9 @@ class JMeterRawLogsFile(RawLogsFile):
         verbose_name_plural = 'Файлы логов JMeter'
 
 
-class Account(models.Model):
+class Customer(models.Model):
     """
-    Аккаунт проекта.
+    Заказчик проекта. Используется для шруппировки проектов.
     """
     name = models.CharField('Наименование', max_length=30)
     description = models.TextField('Описание', blank=True)
@@ -58,8 +58,8 @@ class Account(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Аккаунт'
-        verbose_name_plural = 'Аккаунты'
+        verbose_name = 'Заказачик'
+        verbose_name_plural = 'Заказчики'
 
 
 class Project(models.Model):
@@ -69,7 +69,7 @@ class Project(models.Model):
 
     key = models.CharField('Алиас', max_length=10, unique=True, null=False, blank=False)
     name = models.CharField('Наименование', max_length=30)
-    account = models.ForeignKey('Account', on_delete=models.CASCADE, blank=True, null=True)
+    customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField('Описание', blank=True)
 
     def __str__(self):

@@ -5,11 +5,11 @@ from .models import TestPlan
 from .models import Project
 from .models import TestPhase
 from .models import LoadStation
-from .models import Account
+from .models import Customer
 
 
 class ProjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'key', 'account')
+    list_display = ('name', 'key', 'customer')
 
 
 class TestAdmin(admin.ModelAdmin):
@@ -24,7 +24,7 @@ class TestAdmin(admin.ModelAdmin):
     save_on_top = True
 
 # Register your models here.
-admin.site.register(Account)
+admin.site.register(Customer)
 admin.site.register(JMeterRawLogsFile)
 admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan)
