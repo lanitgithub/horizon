@@ -9,8 +9,21 @@ from django.conf import settings
 from datetime import datetime
 
 # TODO: django-adaptors не поддерживает python3, переключиться на использование https://github.com/edcrewe/django-csvimport  <p:0>
-from adaptor.model import CsvModel
-from adaptor import fields as csv_fields
+try:
+    from adaptor.model import CsvModel
+    from adaptor import fields as csv_fields
+except:
+    class CsvModel: pass
+    class csv_fields:
+
+        class DateField():
+            def __init__(*args, **kwargs): pass
+
+        def IgnoredField(*args, **kwargs): pass
+        def DjangoModelField(*args, **kwargs): pass
+        def IntegerField(*args, **kwargs): pass
+        def CharField(*args, **kwargs): pass
+        def BooleanField(*args, **kwargs): pass
 
 
 class RawLogsFile(models.Model):
@@ -58,7 +71,7 @@ class Customer(models.Model):
         return self.name
 
     class Meta:
-        verbose_name = 'Заказачик'
+        verbose_name = 'Заказчик'
         verbose_name_plural = 'Заказчики'
 
 
@@ -102,6 +115,7 @@ class Test(models.Model):
     """
     name = models.CharField('Наименование', max_length=100)
     description = models.TextField('Описание', blank=True)
+    # TODO Добавить фильтрацию по "кастомной" дате <p:2>
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
     end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
