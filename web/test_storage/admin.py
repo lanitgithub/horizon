@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.forms import ModelForm
+
 from .models import JMeterRawLogsFile
 from .models import Test
 from .models import TestPlan
@@ -12,6 +14,19 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'customer')
 
 
+class TestForm(ModelForm):
+
+    class Meta:
+        model = Test
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(TestForm, self).__init__(*args, **kwargs)
+        customer = self.instance.testplan.project.customer
+        if customer:
+            self.fields['load_stations'].queryset = LoadStation.objects.filter(customer=customer)
+
+
 class TestAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,               {'fields': ['name', 'description']}),
@@ -21,6 +36,16 @@ class TestAdmin(admin.ModelAdmin):
                                          'successful']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
+    list_display = ('name', 'start_time', 'end_time', 'testplan', 'user',
+                    'rps_avg', 'response_time_avg', 'errors_pct')
+    list_filter = ('testplan', 'testplan__project', 'successful', 'start_time', 'end_time', )
+    filter_horizontal = ('load_stations', )
+    save_on_top = True
+    form = TestForm
+
+
+class LoadStationAdmin(admin.ModelAdmin):
+    list_filter = ('customer', 'customer__project')
     save_on_top = True
 
 # Register your models here.
@@ -30,4 +55,4 @@ admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(TestPhase)
-admin.site.register(LoadStation)
+admin.site.register(LoadStation, LoadStationAdmin)

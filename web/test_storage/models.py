@@ -66,6 +66,7 @@ class Project(models.Model):
     # TODO Добавить возможность фильтрации проектов по Аккаунту(Заказчику) <p:1>
     # TODO Добавить возможность фильтрации проектов по владельцу (Свои/Чужие) <p:1>
     # TODO Добавить возможность разграничения доступа (чтобы тестировщики могли видеть только свои проекты) <p:1>
+    # TODO Добавить теги ко всем сущностям для сложных пресетов фильтрации <p:1>
 
     key = models.CharField('Алиас', max_length=10, unique=True, null=False, blank=False)
     name = models.CharField('Наименование', max_length=30)
@@ -107,9 +108,10 @@ class Test(models.Model):
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
-    # TODO Добавить фильтрацию станций с привязкой к Аккаунту или к Проекту <p:3>
+
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
-                                           help_text='Указываем только станции с которых подавалась нагрузка.')
+                                           help_text='Указываем только станции с которых подавалась нагрузка.',
+                                           )
     system_version = models.TextField('Версия системы')
 
     # TODO Переделать на то чтобы метрики Теста (RPS, Error rate,...) автоматически подтягивались из Фаз теста <p:1>
@@ -155,6 +157,8 @@ class LoadStation(models.Model):
     """
     hostname = models.CharField('Hostname', max_length=30)
     has_horizon_agent = models.BooleanField('Является агентом')
+    customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE,
+                                 blank=True, null=True)
 
     class Meta:
         verbose_name = 'Нагрузочная станция'
