@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.forms import ModelForm
 
+from daterangefilter.filters import PastDateRangeFilter
+
 from .models import JMeterRawLogsFile
 from .models import Test
 from .models import TestPlan
@@ -40,7 +42,7 @@ class TestAdmin(admin.ModelAdmin):
     ]
     list_display = ('name', 'start_time', 'end_time', 'testplan', 'user',
                     'rps_avg', 'response_time_avg', 'errors_pct')
-    list_filter = ('testplan', 'testplan__project', 'successful', 'start_time', 'end_time', )
+    list_filter = ('testplan', 'testplan__project', 'successful', ('start_time', PastDateRangeFilter), ('end_time', PastDateRangeFilter), )
     filter_horizontal = ('load_stations', )
     save_on_top = True
     form = TestForm
