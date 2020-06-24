@@ -36,6 +36,8 @@ class TestAdmin(admin.ModelAdmin):
                                          'successful']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
+    list_filter = ('testplan', 'testplan__project', 'start_time', 'end_time')
+    filter_horizontal = ('load_stations', )
     save_on_top = True
     form = TestForm
 
