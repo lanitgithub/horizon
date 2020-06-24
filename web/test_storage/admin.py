@@ -39,6 +39,11 @@ class TestAdmin(admin.ModelAdmin):
     save_on_top = True
     form = TestForm
 
+
+class LoadStationAdmin(admin.ModelAdmin):
+    list_filter = ('customer', 'customer__project')
+    save_on_top = True
+
 # Register your models here.
 admin.site.register(Customer)
 admin.site.register(JMeterRawLogsFile)
@@ -46,4 +51,4 @@ admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(TestPhase)
-admin.site.register(LoadStation)
+admin.site.register(LoadStation, LoadStationAdmin)
