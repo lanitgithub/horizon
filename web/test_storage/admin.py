@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.forms import ModelForm
+
 from .models import JMeterRawLogsFile
 from .models import Test
 from .models import TestPlan
@@ -12,6 +14,19 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'customer')
 
 
+class TestForm(ModelForm):
+
+    class Meta:
+        model = Test
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(TestForm, self).__init__(*args, **kwargs)
+        customer = self.instance.testplan.project.customer
+        if customer:
+            self.fields['load_stations'].queryset = LoadStation.objects.filter(customer=customer)
+
+
 class TestAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,               {'fields': ['name', 'description']}),
@@ -22,6 +37,7 @@ class TestAdmin(admin.ModelAdmin):
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
     save_on_top = True
+    form = TestForm
 
 # Register your models here.
 admin.site.register(Customer)

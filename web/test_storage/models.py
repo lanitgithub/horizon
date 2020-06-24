@@ -107,9 +107,10 @@ class Test(models.Model):
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
-    # TODO Добавить фильтрацию станций с привязкой к Аккаунту или к Проекту <p:3>
+
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
-                                           help_text='Указываем только станции с которых подавалась нагрузка.')
+                                           help_text='Указываем только станции с которых подавалась нагрузка.',
+                                           )
     system_version = models.TextField('Версия системы')
 
     # TODO Переделать на то чтобы метрики Теста (RPS, Error rate,...) автоматически подтягивались из Фаз теста <p:1>
@@ -155,6 +156,8 @@ class LoadStation(models.Model):
     """
     hostname = models.CharField('Hostname', max_length=30)
     has_horizon_agent = models.BooleanField('Является агентом')
+    customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE,
+                                 blank=True, null=True)
 
     class Meta:
         verbose_name = 'Нагрузочная станция'
