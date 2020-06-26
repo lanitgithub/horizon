@@ -1,9 +1,9 @@
 from django.urls import path
 
-from .views import TestView
+from .views import TestList
 app_name = "test_storage"
 
 # app_name will help us do a reverse look-up latter.
 urlpatterns = [
-    path('tests/', TestView.as_view()),
+    path('tests/', TestList.as_view()),
 ]
