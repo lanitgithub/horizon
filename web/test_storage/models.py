@@ -8,7 +8,8 @@ from django.db import models
 from django.conf import settings
 from datetime import datetime
 
-# TODO: django-adaptors не поддерживает python3, переключиться на использование https://github.com/edcrewe/django-csvimport  <p:0>
+# TODO: django-adaptors не поддерживает python3, переключиться на использование
+#  https://github.com/edcrewe/django-csvimport  <p:0>
 try:
     from adaptor.model import CsvModel
     from adaptor import fields as csv_fields
@@ -42,8 +43,10 @@ class RawLogsFile(models.Model):
         verbose_name_plural = 'Файлы логов НТ'
 
 
-class JMeterRawLogsFile(RawLogsFile):
-
+class JmeterRawLogsFile(RawLogsFile):
+    """
+    Архив с файлом(ами) или файл логов Jmeter.
+    """
     def save(self, *args, **kwargs):
         super(RawLogsFile, self).save(*args, **kwargs)
         try:
@@ -56,7 +59,7 @@ class JMeterRawLogsFile(RawLogsFile):
         return self.file.name
 
     class Meta:
-        verbose_name = 'Файл логов JMeter'
+        verbose_name = 'Файлы логов JMeter'
         verbose_name_plural = 'Файлы логов JMeter'
 
 
@@ -182,9 +185,9 @@ class LoadStation(models.Model):
         return self.hostname
 
 
-class JMRequest(models.Model):
+class JmeterRequest(models.Model):
     """Запись запроса в логе. (Одна строка из лога)"""
-    source = models.ForeignKey('test_storage.JMeterRawLogsFile', on_delete=models.CASCADE)
+    source = models.ForeignKey('JmeterRawLogsFile', on_delete=models.CASCADE)
     timeStamp = models.DateTimeField()
     elapsed = models.PositiveIntegerField()
     label = models.CharField(max_length=255)
@@ -245,4 +248,4 @@ class JMCsvModel(CsvModel):
     class Meta:
         delimiter = ','
         has_header = True
-        dbModel = JMRequest
+        dbModel = JmeterRequest
