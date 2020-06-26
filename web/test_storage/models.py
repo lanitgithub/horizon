@@ -8,7 +8,8 @@ from django.db import models
 from django.conf import settings
 from datetime import datetime
 
-# TODO: django-adaptors не поддерживает python3, переключиться на использование https://github.com/edcrewe/django-csvimport  <p:0>
+# TODO: django-adaptors не поддерживает python3, переключиться на использование
+#  https://github.com/edcrewe/django-csvimport  <p:0>
 try:
     from adaptor.model import CsvModel
     from adaptor import fields as csv_fields
