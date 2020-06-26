@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from .models import JmeterRawLogsFile
+
 class TestSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     description = serializers.CharField()
@@ -14,3 +16,11 @@ class TestSerializer(serializers.Serializer):
     errors_pct = serializers.FloatField()
     successful = serializers.BooleanField()
     # TODO Добавить testplan, load_stations, user
+
+
+class JmeterRawLogsFileSerializer(serializers.Serializer):
+    file = serializers.FileField()
+    test_id = serializers.IntegerField()
+
+    def create(self, validated_data):
+        return JmeterRawLogsFile.objects.create(**validated_data)

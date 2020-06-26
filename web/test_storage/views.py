@@ -2,11 +2,19 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
+from rest_framework import permissions
 
-from .models import Test
-from .serializers import TestSerializer
+from .models import Test, JmeterRawLogsFile
+from .serializers import TestSerializer, JmeterRawLogsFileSerializer
 
 
 class TestList(generics.ListCreateAPIView):
     queryset = Test.objects.all()
     serializer_class = TestSerializer
+    permission_classes = [permissions.DjangoModelPermissions]
+
+
+class JmeterLogsFileList(generics.ListCreateAPIView):
+    queryset = JmeterRawLogsFile.objects.all()
+    serializer_class = JmeterRawLogsFileSerializer
+    permission_classes = [permissions.DjangoModelPermissions]

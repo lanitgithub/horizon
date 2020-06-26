@@ -3,7 +3,7 @@ from django.forms import ModelForm
 
 from daterangefilter.filters import PastDateRangeFilter
 
-from .models import JMeterRawLogsFile
+from .models import JmeterRawLogsFile
 from .models import Test
 from .models import TestPlan
 from .models import Project
@@ -54,7 +54,7 @@ class LoadStationAdmin(admin.ModelAdmin):
 
 # Register your models here.
 admin.site.register(Customer)
-admin.site.register(JMeterRawLogsFile)
+admin.site.register(JmeterRawLogsFile)
 admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan)
 admin.site.register(Project, ProjectAdmin)
