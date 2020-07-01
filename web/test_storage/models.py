@@ -79,7 +79,6 @@ class Customer(models.Model):
 
 
 class Project(models.Model):
-    # TODO Добавить возможность фильтрации проектов по владельцу (Свои/Чужие) <p:1>
     # TODO Добавить возможность разграничения доступа (чтобы тестировщики могли видеть только свои проекты) <p:1>
     # TODO Добавить теги ко всем сущностям для сложных пресетов фильтрации <p:1>
 
@@ -109,6 +108,8 @@ class TestPlan(models.Model):
         STRESS = 'STR'
         VOLUME = 'VOL'
         SMOKE = 'SMK'
+        SCALABILITY = 'SCA'
+
 
         choices = [
             (STABLE, 'Тест стабильности'),
@@ -117,6 +118,7 @@ class TestPlan(models.Model):
             (STRESS, 'Стрессовое тестирование'),
             (VOLUME, 'Объемное тестирование'),
             (SMOKE, 'Дымовое тестирование'),
+            (SCALABILITY, 'Тестирование масштабируемости'),
         ]
 
     test_type = models.CharField(

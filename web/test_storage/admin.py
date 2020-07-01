@@ -41,12 +41,19 @@ class TestAdmin(admin.ModelAdmin):
                                          'successful']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
-    list_display = ('name', 'start_time', 'end_time', 'testplan', 'user',
+    list_display = ('name', 'start_time', 'end_time', 'testplan', 'user_label',
                     'rps_avg', 'response_time_avg', 'errors_pct')
-    list_filter = ('testplan', 'testplan__project', 'successful', ('start_time', PastDateRangeFilter), ('end_time', PastDateRangeFilter), )
-    filter_horizontal = ('load_stations', )
+    list_filter = ('testplan', 'testplan__project', 'successful', ('start_time', PastDateRangeFilter),
+                   ('end_time', PastDateRangeFilter), 'user')
+    filter_horizontal = ('load_stations',)
     save_on_top = True
     form = TestForm
+
+    def user_label(self, obj):
+        if obj.user.first_name or obj.user.last_name:
+            return "{0} {1}".format(obj.user.first_name, obj.user.last_name)
+        else:
+            return obj.user.username
 
 class TestPlanAdmin(admin.ModelAdmin):
     list_display = ('name', 'project', 'test_type')
