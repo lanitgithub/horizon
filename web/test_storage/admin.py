@@ -14,6 +14,7 @@ from .models import Customer
 
 class ProjectAdmin(admin.ModelAdmin):
     list_display = ('name', 'key', 'customer')
+    list_filter = ('customer',)
 
 
 class TestForm(ModelForm):
@@ -47,16 +48,20 @@ class TestAdmin(admin.ModelAdmin):
     save_on_top = True
     form = TestForm
 
+class TestPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'project', 'test_type')
+    list_filter = ('project', )
+    save_on_top = True
 
 class LoadStationAdmin(admin.ModelAdmin):
-    list_filter = ('customer', 'customer__project')
+    list_filter = ('customer', )
     save_on_top = True
 
 # Register your models here.
 admin.site.register(Customer)
 admin.site.register(JmeterRawLogsFile)
 admin.site.register(Test, TestAdmin)
-admin.site.register(TestPlan)
+admin.site.register(TestPlan, TestPlanAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(TestPhase)
 admin.site.register(LoadStation, LoadStationAdmin)

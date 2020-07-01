@@ -79,15 +79,14 @@ class Customer(models.Model):
 
 
 class Project(models.Model):
-    # TODO Добавить возможность фильтрации проектов по Аккаунту(Заказчику) <p:1>
     # TODO Добавить возможность фильтрации проектов по владельцу (Свои/Чужие) <p:1>
     # TODO Добавить возможность разграничения доступа (чтобы тестировщики могли видеть только свои проекты) <p:1>
     # TODO Добавить теги ко всем сущностям для сложных пресетов фильтрации <p:1>
 
-    key = models.CharField('Алиас', max_length=10, unique=True, null=False, blank=False)
-    name = models.CharField('Наименование', max_length=30)
+    key = models.CharField('Алиас', max_length=20, unique=True, null=False, blank=False)
+    name = models.CharField('Наименование', max_length=50)
     customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE, blank=True, null=True)
-    description = models.TextField('Описание', blank=True)
+    description_url = models.URLField('Ссылка на описание', blank=True, help_text='wiki')
 
     def __str__(self):
         return f'{self.name} ({self.key})'
@@ -98,11 +97,38 @@ class Project(models.Model):
 
 
 class TestPlan(models.Model):
+
     name = models.CharField('Наименование', max_length=30)
-    description_url = models.URLField('Ссылка на описание', blank=True, help_text='wiki')
-    documents_url = models.URLField('Документы', blank=True, help_text='Ссылка на sharepoint (МНТ и Отчеты)')
+
+    # Лучше использовать models.TextChoices в django 3.0 (Аналогичено enum)
+    # Типы тестов
+    class TestTypes():
+        STABLE = 'STB'
+        MAX = 'MAX'
+        SINTHETIC = 'SIN'
+        STRESS = 'STR'
+        VOLUME = 'VOL'
+        SMOKE = 'SMK'
+
+        choices = [
+            (STABLE, 'Тест стабильности'),
+            (MAX, 'Поиск максимума'),
+            (SINTHETIC, 'Синтетический тест'),
+            (STRESS, 'Стрессовое тестирование'),
+            (VOLUME, 'Объемное тестирование'),
+            (SMOKE, 'Дымовое тестирование'),
+        ]
+
+    test_type = models.CharField(
+        max_length=3,
+        choices=TestTypes.choices,
+        default=TestTypes.MAX,
+    )
+
+    documents_url = models.URLField('Документы', max_length=1000, blank=True, help_text='Ссылка на sharepoint (МНТ и Отчеты)')
     scripts_url = models.URLField('Ссылка на скрипты', blank=True, help_text='GitLab')
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
+    description = models.TextField('Описание', blank=True)
 
     def __str__(self):
         return self.name
@@ -118,7 +144,6 @@ class Test(models.Model):
     """
     name = models.CharField('Наименование', max_length=100)
     description = models.TextField('Описание', blank=True)
-    # TODO Добавить фильтрацию по "кастомной" дате <p:2>
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
     end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
