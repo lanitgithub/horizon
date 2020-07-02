@@ -1,0 +1,8 @@
+asgiref==3.2.10
+Django==2.2.13
+django-daterangefilter==1.0.0
+django-extensions==2.2.9
+djangorestframework==3.11.0
+pytz==2020.1
+six==1.15.0
+sqlparse==0.3.1
