@@ -17,7 +17,7 @@ except:
     class CsvModel: pass
     class csv_fields:
 
-        class DateField():
+        class DateField:
             def __init__(*args, **kwargs): pass
 
         def IgnoredField(*args, **kwargs): pass
