@@ -42,7 +42,7 @@
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="get thread number from Horizon" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="get thread number from Horizonctx.getEngine()" enabled="true">
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
             <collectionProp name="Arguments.arguments">
               <elementProp name="test_id" elementType="HTTPArgument">
@@ -98,7 +98,7 @@ new_tread_count = vars.get(&apos;new_thread_count&apos;)
 log.warn(new_tread_count)
 props.get(&apos;targetTG&apos;).setTargetLevel(new_tread_count)
 log.warn(props.get(&apos;targetTG&apos;).getConcurrency().toString())
-</stringProp>
+System.exit(0);</stringProp>
           <stringProp name="scriptLanguage">groovy</stringProp>
         </JSR223Sampler>
         <hashTree/>
@@ -147,9 +147,9 @@ log.warn(props.get(&apos;targetTG&apos;).getConcurrency().toString())
       <com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup guiclass="com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroupGui" testclass="com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup" testname="bzm - Concurrency Thread Group" enabled="true">
         <elementProp name="ThreadGroup.main_controller" elementType="com.blazemeter.jmeter.control.VirtualUserController"/>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <stringProp name="TargetLevel">1</stringProp>
-        <stringProp name="RampUp">2</stringProp>
-        <stringProp name="Steps">1</stringProp>
+        <stringProp name="TargetLevel">11</stringProp>
+        <stringProp name="RampUp">60</stringProp>
+        <stringProp name="Steps">10</stringProp>
         <stringProp name="Hold">5</stringProp>
         <stringProp name="LogFilename"></stringProp>
         <stringProp name="Iterations">2</stringProp>

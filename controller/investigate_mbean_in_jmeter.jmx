@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.0 r1840935">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Test Plan" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="JSR223 Sampler" enabled="true">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">
+ 
+public interface MyMBean {
+    
+    String getMyName();
+    
+    void setSomeValue(int value1);
+    
+    int getSomeValue();
+    
+    void writeToConsole(String message);
+    
+    String concat(String str1, String str2);
+}
+
+
+
+ 
+import java.lang.management.ManagementFactory;
+ 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+ 
+
+ 
+public class My implements MyMBean {
+ 
+    private int someValue;
+    
+    @Override
+    public String getMyName() {
+        return &quot;JustMBeanName&quot; + someValue;
+    }
+ 
+    @Override
+    public void setSomeValue(int value1) {
+        this.someValue = value1;
+    }
+ 
+    @Override
+    public int getSomeValue() {
+        return this.someValue;
+    }
+ 
+    @Override
+    public void writeToConsole(String message) {
+        System.out.println(message);
+    }
+ 
+    @Override
+    public String concat(String str1, String str2) {
+        return str1 + str2;
+    }
+}
+
+
+/**
+ * 
+ * Example from &lt;a href=&quot;https://urvanov.ru&quot;&gt;https://urvanov.ru&lt;/a&gt;
+ */
+public class App
+{
+    public static void main( String[] args ) throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, InterruptedException
+    {
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer(); 
+        ObjectName name = new ObjectName(&quot;ru.urvanov.javaexamples.mbeans:type=My&quot;); 
+        My mbean = new My(); 
+        mbs.registerMBean(mbean, name); 
+     
+        System.out.println(&quot;Waiting forever...&quot;); 
+        Thread.sleep(Long.MAX_VALUE); 
+    }
+}</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
