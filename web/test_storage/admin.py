@@ -36,7 +36,7 @@ class TestForm(ModelForm):
 class TestAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,               {'fields': ['name', 'description']}),
-        ('Время теста', {'fields': ['start_time', 'end_time']}),
+        ('Время теста', {'fields': ['start_time', 'end_time', 'state']}),
         ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
         ('Результаты теста', {'fields': ['result', 'artifacts', 'rps_avg', 'response_time_avg', 'errors_pct',
                                          'successful']}),
@@ -67,7 +67,7 @@ class TestPlanAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         if "_run-test" in request.POST:
-            obj.run_test()
+            obj.run_test(request)
             self.message_user(request, 'Test ran.')
         return super().response_change(request, obj)
 

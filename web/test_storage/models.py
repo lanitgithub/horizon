@@ -3,10 +3,12 @@
 # vim: fileencoding=utf-8
 
 import _csv
+from datetime import datetime
 
 from django.db import models
 from django.conf import settings
-from datetime import datetime
+from django.utils.translation import gettext_lazy as _
+
 
 # TODO: django-adaptors не поддерживает python3, переключиться на использование
 #  https://github.com/edcrewe/django-csvimport  <p:0>
@@ -159,8 +161,12 @@ class TestPlan(models.Model):
     def __str__(self):
         return self.name
 
-
-    def run_test(self):
+    def run_test(self, request):
+        test = Test(name=self.name,
+                    testplan=self,
+                    user=request.user,
+                    )
+        test.save()
         pass
 
     class Meta:
@@ -172,6 +178,11 @@ class Test(models.Model):
     """
     Итерация тестирования.
     """
+
+    class TestState(models.TextChoices):
+        RUNNING_JMETER = 'J', _('Running JMeter master')
+        COMPLETED = 'C', _('Completed')
+
     name = models.CharField('Наименование', max_length=100)
     description = models.TextField('Описание', blank=True)
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
@@ -180,6 +191,10 @@ class Test(models.Model):
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
+    state = models.CharField(max_length=1,
+                             choices=TestState.choices,
+                             default=TestState.RUNNING_JMETER,
+                             )
 
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.',
