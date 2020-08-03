@@ -95,6 +95,23 @@ class Project(models.Model):
         verbose_name_plural = 'Проекты'
 
 
+class JmeterSource(models.Model):
+    url = models.URLField('Ссылка на скрипт в gitlab')
+    token = models.CharField('Токен',
+                             max_length=30,
+                             blank=True,
+                             help_text='Токен сгенерировать можно по ссылке: '
+                                       'https://gitlab.dks.lanit.ru/profile/personal_access_tokens'
+                                       'Необходимые права(scopes): "read_repository"')
+
+    def __str__(self):
+        return self.url
+
+    class Meta:
+        verbose_name = 'Скрипт НТ'
+        verbose_name_plural = 'Скрипты НТ'
+
+
 class TestPlan(models.Model):
 
     name = models.CharField('Наименование', max_length=30)
@@ -127,13 +144,24 @@ class TestPlan(models.Model):
         default=TestTypes.MAX,
     )
 
-    documents_url = models.URLField('Документы', max_length=1000, blank=True, help_text='Ссылка на sharepoint (МНТ и Отчеты)')
-    scripts_url = models.URLField('Ссылка на скрипты', blank=True, help_text='GitLab')
+    documents_url = models.URLField('Документы', max_length=1000, blank=True,
+                                    help_text='Ссылка на sharepoint (МНТ и Отчеты)')
+
+    jmeter_source = models.ForeignKey('JmeterSource',
+                                      blank=True,
+                                      null=True,
+                                      help_text='GitLab',
+                                      on_delete=models.CASCADE,
+                                      )
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     description = models.TextField('Описание', blank=True)
 
     def __str__(self):
         return self.name
+
+
+    def run_test(self):
+        pass
 
     class Meta:
         verbose_name = 'Тест-план'

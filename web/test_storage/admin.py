@@ -5,6 +5,7 @@ from daterangefilter.filters import PastDateRangeFilter
 
 from .models import JmeterRawLogsFile
 from .models import Test
+from .models import JmeterSource
 from .models import TestPlan
 from .models import Project
 from .models import TestPhase
@@ -55,14 +56,26 @@ class TestAdmin(admin.ModelAdmin):
         else:
             return obj.user.username
 
+
 class TestPlanAdmin(admin.ModelAdmin):
+
+    change_form_template = 'admin/test_storage/test_plan/change_form.html'
+
     list_display = ('name', 'project', 'test_type')
     list_filter = ('project', )
     save_on_top = True
 
+    def response_change(self, request, obj):
+        if "_run-test" in request.POST:
+            obj.run_test()
+            self.message_user(request, 'Test ran.')
+        return super().response_change(request, obj)
+
+
 class LoadStationAdmin(admin.ModelAdmin):
     list_filter = ('customer', )
     save_on_top = True
+
 
 # Register your models here.
 admin.site.register(Customer)
@@ -71,4 +84,5 @@ admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan, TestPlanAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(TestPhase)
+admin.site.register(JmeterSource)
 admin.site.register(LoadStation, LoadStationAdmin)
