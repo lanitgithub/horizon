@@ -8,6 +8,7 @@ from datetime import datetime
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
 
 
 # TODO: django-adaptors не поддерживает python3, переключиться на использование
@@ -167,7 +168,7 @@ class TestPlan(models.Model):
                     user=request.user,
                     )
         test.save()
-        pass
+        return test
 
     class Meta:
         verbose_name = 'Тест-план'
@@ -220,6 +221,10 @@ class Test(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_admin_url(self):
+        return reverse('admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
+                       args=[self.id])
 
     class Meta:
         verbose_name = 'Тест'

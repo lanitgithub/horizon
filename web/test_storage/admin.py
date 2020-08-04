@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.forms import ModelForm
-
+from django.http import HttpResponseRedirect
 from daterangefilter.filters import PastDateRangeFilter
 
 from .models import JmeterRawLogsFile
@@ -66,10 +66,12 @@ class TestPlanAdmin(admin.ModelAdmin):
     save_on_top = True
 
     def response_change(self, request, obj):
+        res = super().response_change(request, obj)
         if "_run-test" in request.POST:
-            obj.run_test(request)
+            test = obj.run_test(request)
             self.message_user(request, 'Test ran.')
-        return super().response_change(request, obj)
+            return HttpResponseRedirect(test.get_admin_url())
+        return res
 
 
 class LoadStationAdmin(admin.ModelAdmin):
