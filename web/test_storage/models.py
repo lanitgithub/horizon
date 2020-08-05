@@ -3,10 +3,13 @@
 # vim: fileencoding=utf-8
 
 import _csv
+from datetime import datetime
 
 from django.db import models
 from django.conf import settings
-from datetime import datetime
+from django.utils.translation import gettext_lazy as _
+from django.urls import reverse
+
 
 # TODO: django-adaptors не поддерживает python3, переключиться на использование
 #  https://github.com/edcrewe/django-csvimport  <p:0>
@@ -95,6 +98,23 @@ class Project(models.Model):
         verbose_name_plural = 'Проекты'
 
 
+class JmeterSource(models.Model):
+    url = models.URLField('Ссылка на скрипт в gitlab')
+    token = models.CharField('Токен',
+                             max_length=30,
+                             blank=True,
+                             help_text='Токен сгенерировать можно по ссылке: '
+                                       'https://gitlab.dks.lanit.ru/profile/personal_access_tokens'
+                                       'Необходимые права(scopes): "read_repository"')
+
+    def __str__(self):
+        return self.url
+
+    class Meta:
+        verbose_name = 'Скрипт НТ'
+        verbose_name_plural = 'Скрипты НТ'
+
+
 class TestPlan(models.Model):
 
     name = models.CharField('Наименование', max_length=30)
@@ -127,13 +147,28 @@ class TestPlan(models.Model):
         default=TestTypes.MAX,
     )
 
-    documents_url = models.URLField('Документы', max_length=1000, blank=True, help_text='Ссылка на sharepoint (МНТ и Отчеты)')
-    scripts_url = models.URLField('Ссылка на скрипты', blank=True, help_text='GitLab')
+    documents_url = models.URLField('Документы', max_length=1000, blank=True,
+                                    help_text='Ссылка на sharepoint (МНТ и Отчеты)')
+
+    jmeter_source = models.ForeignKey('JmeterSource',
+                                      blank=True,
+                                      null=True,
+                                      help_text='GitLab',
+                                      on_delete=models.CASCADE,
+                                      )
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     description = models.TextField('Описание', blank=True)
 
     def __str__(self):
         return self.name
+
+    def run_test(self, request):
+        test = Test(name=self.name,
+                    testplan=self,
+                    user=request.user,
+                    )
+        test.save()
+        return test
 
     class Meta:
         verbose_name = 'Тест-план'
@@ -144,6 +179,11 @@ class Test(models.Model):
     """
     Итерация тестирования.
     """
+
+    class TestState(models.TextChoices):
+        RUNNING_JMETER = 'J', _('Running JMeter master')
+        COMPLETED = 'C', _('Completed')
+
     name = models.CharField('Наименование', max_length=100)
     description = models.TextField('Описание', blank=True)
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
@@ -152,6 +192,10 @@ class Test(models.Model):
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
+    state = models.CharField(max_length=1,
+                             choices=TestState.choices,
+                             default=TestState.RUNNING_JMETER,
+                             )
 
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
                                            help_text='Указываем только станции с которых подавалась нагрузка.',
@@ -177,6 +221,10 @@ class Test(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_admin_url(self):
+        return reverse('admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
+                       args=[self.id])
 
     class Meta:
         verbose_name = 'Тест'

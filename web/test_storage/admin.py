@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.forms import ModelForm
-
+from django.http import HttpResponseRedirect
 from daterangefilter.filters import PastDateRangeFilter
 
 from .models import JmeterRawLogsFile
 from .models import Test
+from .models import JmeterSource
 from .models import TestPlan
 from .models import Project
 from .models import TestPhase
@@ -35,7 +36,7 @@ class TestForm(ModelForm):
 class TestAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,               {'fields': ['name', 'description']}),
-        ('Время теста', {'fields': ['start_time', 'end_time']}),
+        ('Время теста', {'fields': ['start_time', 'end_time', 'state']}),
         ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
         ('Результаты теста', {'fields': ['result', 'artifacts', 'rps_avg', 'response_time_avg', 'errors_pct',
                                          'successful']}),
@@ -55,14 +56,28 @@ class TestAdmin(admin.ModelAdmin):
         else:
             return obj.user.username
 
+
 class TestPlanAdmin(admin.ModelAdmin):
+
+    change_form_template = 'admin/test_storage/test_plan/change_form.html'
+
     list_display = ('name', 'project', 'test_type')
     list_filter = ('project', )
     save_on_top = True
 
+    def response_change(self, request, obj):
+        res = super().response_change(request, obj)
+        if "_run-test" in request.POST:
+            test = obj.run_test(request)
+            self.message_user(request, 'Test ran.')
+            return HttpResponseRedirect(test.get_admin_url())
+        return res
+
+
 class LoadStationAdmin(admin.ModelAdmin):
     list_filter = ('customer', )
     save_on_top = True
+
 
 # Register your models here.
 admin.site.register(Customer)
@@ -71,4 +86,5 @@ admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan, TestPlanAdmin)
 admin.site.register(Project, ProjectAdmin)
 admin.site.register(TestPhase)
+admin.site.register(JmeterSource)
 admin.site.register(LoadStation, LoadStationAdmin)
