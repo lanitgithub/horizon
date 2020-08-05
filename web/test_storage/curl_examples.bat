@@ -1,0 +1,1 @@
+curl  -H "Authorization: Token 94d69b182249bc9bb358d88c10143015713fbb32" -F "test_id=projectName_20200805_133059"  -F "file=@D:\projs\horizon\web\test_storage\test_resources\empty_jmeter_log.csv" http://127.0.0.1:8000/api/jmeter_logs/

@@ -40,7 +40,7 @@ class JmeterRawLogsFileSerializer(serializers.Serializer):
                                                        test_type=TestPlan.TestTypes.SMOKE,
                                                        project=project,
                                                        )[0]
-            test = Test.objects.get_or_create(name=test_plan.name,
+            test = Test.objects.get_or_create(name=validated_data['test_id'],
                                               start_time=start_datetime,
                                               testplan=test_plan,
                                               defaults={'end_time': datetime.datetime.now(),
