@@ -36,12 +36,16 @@ class RawLogsFile(models.Model):
     """
     file = models.FileField(upload_to='raw_logs/%d.%m.%y')
     test = models.ForeignKey('Test', on_delete=models.CASCADE)
+    # https://stackoverflow.com/questions/1737017/django-auto-now-and-auto-now-add/1737078#1737078
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def __unicode__(self):
         return self.file.name
 
     class Meta:
         abstract = True
+        ordering = ['-created_at']
         verbose_name = 'Файл логов НТ'
         verbose_name_plural = 'Файлы логов НТ'
 
@@ -54,6 +58,9 @@ class JmeterRawLogsFile(RawLogsFile):
         super(RawLogsFile, self).save(*args, **kwargs)
         try:
             JMCsvModel.import_data(data=self.file.file, extra_fields=[{'value': self.pk, 'position': 0}])
+        except AttributeError:
+            # Загрушка для отстуствующей библиотеки adaptors
+            pass
         except _csv.Error:
             # TODO Дописать автоматическое разархивирование JMeterLog <p:0>
             pass
@@ -87,7 +94,8 @@ class Project(models.Model):
 
     key = models.CharField('Алиас', max_length=20, unique=True, null=False, blank=False)
     name = models.CharField('Наименование', max_length=50)
-    customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE, blank=True, null=True)
+    customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE, blank=True,
+                                 null=True)
     description_url = models.URLField('Ссылка на описание', blank=True, help_text='wiki')
 
     def __str__(self):
@@ -189,7 +197,9 @@ class Test(models.Model):
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
     end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
-    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
+    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE,
+#                                 blank=True, null=True,  # Для возможности создания тестов из Jenkins
+                                 )
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
     state = models.CharField(max_length=1,

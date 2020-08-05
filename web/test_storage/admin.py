@@ -79,9 +79,13 @@ class LoadStationAdmin(admin.ModelAdmin):
     save_on_top = True
 
 
+class JmeterRawLogsFileAdmin(admin.ModelAdmin):
+    list_display = ('test', 'created_at', 'updated_at')
+
+
 # Register your models here.
 admin.site.register(Customer)
-admin.site.register(JmeterRawLogsFile)
+admin.site.register(JmeterRawLogsFile, JmeterRawLogsFileAdmin)
 admin.site.register(Test, TestAdmin)
 admin.site.register(TestPlan, TestPlanAdmin)
 admin.site.register(Project, ProjectAdmin)

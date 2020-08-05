@@ -18,3 +18,6 @@ class JmeterLogsFileList(generics.ListCreateAPIView):
     queryset = JmeterRawLogsFile.objects.all()
     serializer_class = JmeterRawLogsFileSerializer
     permission_classes = [permissions.DjangoModelPermissions]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
