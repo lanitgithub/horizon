@@ -1,2 +1,0 @@
-debug_sampler.pcapng jmeter.bat -Jremote_hosts=192.168.88.91 -Jserver.rmi.ssl.disable=true -n -t D:\projs\horizon\controller\debug_sampler.jmx  -r
-horizon_test.pcapng Запускал через gui
