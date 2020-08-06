@@ -133,3 +133,4 @@ upload
 *.csv
 private_*
 *.bak
+*secret.yaml

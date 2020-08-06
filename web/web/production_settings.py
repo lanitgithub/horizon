@@ -16,7 +16,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
-MEDIA_ROOT = os.path.join(PROJECT_PATH, 'upload')
+MEDIA_ROOT = os.path.join(PROJECT_PATH, '..', 'data', 'upload')
 MEDIA_URL = '/upload/'
 
 # Quick-start development settings - unsuitable for production
