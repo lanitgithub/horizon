@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: horizon-media
+  labels:
+    app: horizon-media
+spec:
+  selector:
+    matchLabels:
+      app: horizon-media
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: horizon-media
+    spec:
+      containers:
+      - name: horizon-media
+        image: nginx
+        volumeMounts:
+          - mountPath: /usr/share/nginx/html
+            name: horizon-media-volume
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "500m"
+          requests:
+            memory: 256Mi
+            cpu: "160m"
+      volumes:
+        - name: horizon-media-volume
+          hostPath:
+            # Change for prod
+            path: /u01/horizon-web-storage/upload/
+            type: DirectoryOrCreate
+# Доступ будет по http://127.0.0.1:30000/  (или http://10.126.145.36:30000/)
+# TODO Переделать на ingress https://habr.com/ru/company/southbridge/blog/358824/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: horizon-media
+spec:
+  selector:
+    app: horizon-media
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      # Change for prod
+      nodePort: 8445
+  type: NodePort

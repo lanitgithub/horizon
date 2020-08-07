@@ -28,7 +28,7 @@ SECRET_KEY = '_zz8g9wsk6*re5s1f%j!%m+le&&_h0@u&mh5$j#s7oyz7nc8=='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['rnd.lanit.ru', '10.126.145.36', '127.0.0.1']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

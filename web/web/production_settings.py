@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PROJECT_PATH = os.path.realpath(os.path.dirname(__file__))
 MEDIA_ROOT = os.path.join(PROJECT_PATH, '..', 'data', 'upload')
-MEDIA_URL = '/upload/'
+MEDIA_URL = 'http://10.126.145.36:8445/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
