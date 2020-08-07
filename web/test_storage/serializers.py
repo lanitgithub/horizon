@@ -1,3 +1,4 @@
+import re
 import datetime
 from rest_framework import serializers
 
@@ -31,7 +32,9 @@ class JmeterRawLogsFileSerializer(serializers.Serializer):
         if not validated_data['test_id'].isdigit():
             # Обработка формата псевдонимпроекта_YYYYMMDD_hhmmss
             # Получить айди теста в БД или создать новый тест
-            project_alias, start_datetime = validated_data['test_id'].split('_', maxsplit=1)
+            regex = r"(.*)_(\d{8}_\d{6})"
+            r = re.search(regex, validated_data['test_id'])
+            project_alias, start_datetime = r.groups()
             start_datetime = datetime.datetime.strptime(start_datetime, '%Y%m%d_%H%M%S')
             project = Project.objects.get_or_create(key=project_alias,
                                                     defaults={'name': project_alias},

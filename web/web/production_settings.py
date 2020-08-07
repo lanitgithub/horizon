@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['rnd.lanit.ru', '10.126.145.36', '127.0.0.1']
+ALLOWED_HOSTS = ['rnd.lanit.ru', '10.126.145.36', '127.0.0.1', 'localhost']
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
