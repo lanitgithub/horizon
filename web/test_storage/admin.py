@@ -36,6 +36,7 @@ class TestForm(ModelForm):
 
 class ExternalLinkInline(admin.TabularInline):
     model = ExternalLink
+    extra = 1
 
 
 class TestAdmin(admin.ModelAdmin):
@@ -84,6 +85,7 @@ class TestPlanAdmin(admin.ModelAdmin):
 
 class LoadStationAdmin(admin.ModelAdmin):
     list_filter = ('customer', )
+    list_display = ('hostname', 'description', )
     save_on_top = True
 
 

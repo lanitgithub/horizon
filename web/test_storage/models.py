@@ -277,6 +277,7 @@ class LoadStation(models.Model):
     has_horizon_agent = models.BooleanField('Является агентом')
     customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE,
                                  blank=True, null=True)
+    description = models.TextField('Описание', blank=True)
 
     class Meta:
         verbose_name = 'Нагрузочная станция'
