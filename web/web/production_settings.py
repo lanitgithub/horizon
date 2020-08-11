@@ -33,7 +33,11 @@ ALLOWED_HOSTS = ['rnd.lanit.ru', '10.126.145.36', '127.0.0.1', 'localhost']
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-    ]
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissions',
+    ],
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
 # Application definition
@@ -118,7 +122,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = r'Europe/Moscow'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

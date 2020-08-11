@@ -197,9 +197,7 @@ class Test(models.Model):
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
     end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
-    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE,
-#                                 blank=True, null=True,  # Для возможности создания тестов из Jenkins
-                                 )
+    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
     state = models.CharField(max_length=1,
