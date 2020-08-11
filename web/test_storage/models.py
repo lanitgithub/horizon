@@ -10,23 +10,29 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
-
 # TODO: django-adaptors не поддерживает python3, переключиться на использование
 #  https://github.com/edcrewe/django-csvimport  <p:0>
 try:
     from adaptor.model import CsvModel
     from adaptor import fields as csv_fields
 except:
-    class CsvModel: pass
+    class CsvModel:
+        pass
+
+
     class csv_fields:
 
         class DateField:
             def __init__(*args, **kwargs): pass
 
         def IgnoredField(*args, **kwargs): pass
+
         def DjangoModelField(*args, **kwargs): pass
+
         def IntegerField(*args, **kwargs): pass
+
         def CharField(*args, **kwargs): pass
+
         def BooleanField(*args, **kwargs): pass
 
 
@@ -54,6 +60,7 @@ class JmeterRawLogsFile(RawLogsFile):
     """
     Архив с файлом(ами) или файл логов Jmeter.
     """
+
     def save(self, *args, **kwargs):
         super(RawLogsFile, self).save(*args, **kwargs)
         try:
@@ -124,7 +131,6 @@ class JmeterSource(models.Model):
 
 
 class TestPlan(models.Model):
-
     name = models.CharField('Наименование', max_length=30)
 
     # Лучше использовать models.TextChoices в django 3.0 (Аналогичено enum)
@@ -137,7 +143,6 @@ class TestPlan(models.Model):
         VOLUME = 'VOL'
         SMOKE = 'SMK'
         SCALABILITY = 'SCA'
-
 
         choices = [
             (STABLE, 'Тест стабильности'),
@@ -198,7 +203,7 @@ class Test(models.Model):
     end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE,
-#                                 blank=True, null=True,  # Для возможности создания тестов из Jenkins
+                                 #                                 blank=True, null=True,  # Для возможности создания тестов из Jenkins
                                  )
     task = models.URLField('Задача', blank=True)
     artifacts = models.URLField('Ссылка на артефакты', blank=True)
@@ -239,6 +244,17 @@ class Test(models.Model):
     class Meta:
         verbose_name = 'Тест'
         verbose_name_plural = 'Тесты'
+
+
+class ExternalLink(models.Model):
+    test = models.ForeignKey('Test', on_delete=models.CASCADE)
+    url = models.URLField('Ссылка на артефакты', blank=True)
+    description = models.TextField('Описание', blank=True)
+
+    # Простой способ скрыть отображение заголовка в Inline форме, если модель ExternalLink приживётся,
+    # то переписать на переобредение шаблона
+    def __str__(self):
+        return ''
 
 
 class TestPhase(models.Model):
