@@ -43,7 +43,10 @@ class JmeterRawLogsFileSerializer(serializers.Serializer):
             if not r:
                 raise ParseError("Can't parse parameter, use this format: 'псевдонимпроекта_YYYYMMDD_hhmmss'")
             project_alias, start_datetime = r.groups()
-            start_datetime = datetime.datetime.strptime(start_datetime, '%Y%m%d_%H%M%S')
+            try:
+                start_datetime = datetime.datetime.strptime(start_datetime, '%Y%m%d_%H%M%S')
+            except Exception:
+                raise ParseError("Can't parse date.")
             start_datetime = pytz.timezone(settings.TIME_ZONE).localize(start_datetime)
             project = Project.objects.get_or_create(key=project_alias,
                                                     defaults={'name': project_alias},
