@@ -206,7 +206,8 @@ class Test(models.Model):
                                  #                                 blank=True, null=True,  # Для возможности создания тестов из Jenkins
                                  )
     task = models.URLField('Задача', blank=True)
-    artifacts = models.URLField('Ссылка на артефакты', blank=True)
+    artifacts = models.URLField('DEPRECATED! Ссылка на артефакты', blank=True,
+                                help_text='Это поле удалим в следующей ревизии')  # TODO Remove as Deprecated
     state = models.CharField(max_length=1,
                              choices=TestState.choices,
                              default=TestState.RUNNING_JMETER,

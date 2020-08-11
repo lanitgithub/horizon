@@ -48,7 +48,7 @@ class TestAdmin(admin.ModelAdmin):
         ('Время теста', {'fields': ['start_time', 'end_time', 'state']}),
         ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
         ('Результаты теста', {'fields': ['result', 'rps_avg', 'response_time_avg', 'errors_pct',
-                                         'successful']}),
+                                         'successful', 'artifacts']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
     list_display = ('name', 'start_time', 'end_time', 'testplan', 'user_label',
