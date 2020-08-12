@@ -85,7 +85,15 @@ class TestPlanAdmin(admin.ModelAdmin):
 
 class LoadStationAdmin(admin.ModelAdmin):
     list_filter = ('customer', )
-    list_display = ('hostname', 'description', )
+    list_display = ('hostname',
+                    'ip',
+                    'cpu_count',
+                    'memory_size',
+                    'disk_size',
+                    'os',
+                    'soft',
+                    'description',
+                    )
     save_on_top = True
 
 
