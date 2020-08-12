@@ -271,7 +271,13 @@ class LoadStation(models.Model):
     has_horizon_agent = models.BooleanField('Является агентом')
     customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE,
                                  blank=True, null=True)
-    description = models.TextField('Описание', blank=True)
+    cpu_count = models.PositiveSmallIntegerField('Количество ядер, штук', null=True, blank=True)
+    memory_size = models.FloatField('Объём памяти, Гб', null=True, blank=True)
+    disk_size = models.FloatField('Объём диска, Гб', null=True, blank=True)
+    ip = models.GenericIPAddressField('IP', null=True, blank=True)
+    os = models.CharField('Операционная система', max_length=256, null=True, blank=True)
+    soft = models.CharField('Программное обеспечение', max_length=256, null=True, blank=True)
+    description = models.CharField('Описание', null=True, blank=True, max_length=256)
 
     class Meta:
         ordering = ['customer', 'hostname']
