@@ -199,8 +199,13 @@ class Test(models.Model):
     result = models.TextField('Краткие результаты', blank=True)
     testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
+
+    # TODO Remove as Deprecated
     artifacts = models.URLField('DEPRECATED! Ссылка на артефакты', blank=True,
-                                help_text='Это поле удалим в следующей ревизии')  # TODO Remove as Deprecated
+                                help_text='Это поле удалим в следующей ревизии',
+                                editable=False,
+                                )
+
     state = models.CharField(max_length=1,
                              choices=TestState.choices,
                              default=TestState.RUNNING_JMETER,
