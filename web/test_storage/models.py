@@ -274,6 +274,7 @@ class LoadStation(models.Model):
     description = models.TextField('Описание', blank=True)
 
     class Meta:
+        ordering = ['customer', 'hostname']
         verbose_name = 'Нагрузочная станция'
         verbose_name_plural = 'Нагрузочные станции'
 
