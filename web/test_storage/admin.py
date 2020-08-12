@@ -11,6 +11,7 @@ from .models import Project
 from .models import TestPhase
 from .models import LoadStation
 from .models import Customer
+from .models import ExternalLink
 
 
 class ProjectAdmin(admin.ModelAdmin):
@@ -33,12 +34,20 @@ class TestForm(ModelForm):
                 self.fields['load_stations'].queryset = LoadStation.objects.filter(customer=customer)
 
 
+class ExternalLinkInline(admin.TabularInline):
+    model = ExternalLink
+    extra = 1
+
+
 class TestAdmin(admin.ModelAdmin):
+    inlines = [
+        ExternalLinkInline,
+    ]
     fieldsets = [
-        (None,               {'fields': ['name', 'description']}),
+        (None, {'fields': ['name', 'description']}),
         ('Время теста', {'fields': ['start_time', 'end_time', 'state']}),
         ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
-        ('Результаты теста', {'fields': ['result', 'artifacts', 'rps_avg', 'response_time_avg', 'errors_pct',
+        ('Результаты теста', {'fields': ['result', 'rps_avg', 'response_time_avg', 'errors_pct',
                                          'successful']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
     ]
@@ -76,6 +85,7 @@ class TestPlanAdmin(admin.ModelAdmin):
 
 class LoadStationAdmin(admin.ModelAdmin):
     list_filter = ('customer', )
+    list_display = ('hostname', 'description', )
     save_on_top = True
 
 

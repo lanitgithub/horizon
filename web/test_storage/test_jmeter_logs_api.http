@@ -1,6 +1,7 @@
 GET http://localhost:8000/api/jmeter_logs/
 Accept: application/json
 Authorization: Token 94d69b182249bc9bb358d88c10143015713fbb32
+
 ###
 
 
@@ -10,7 +11,6 @@ Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
 Content-Disposition: form-data; name="test_id"
-Content-Type: application/json
 
 1
 --WebAppBoundary
@@ -19,6 +19,7 @@ Content-Disposition: form-data; name="file"; filename="empty_jmeter_log.csv"
 < ./test_resources/empty_jmeter_log.csv
 
 --WebAppBoundary--
+
 ###
 
 
@@ -28,7 +29,6 @@ Content-Type: multipart/form-data; boundary=WebAppBoundary
 
 --WebAppBoundary
 Content-Disposition: form-data; name="test_id"
-Content-Type: application/json
 
 projectName_20200805_132959
 --WebAppBoundary

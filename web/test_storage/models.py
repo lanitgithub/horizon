@@ -197,11 +197,15 @@ class Test(models.Model):
     start_time = models.DateTimeField('Дата начала', blank=True, null=True)
     end_time = models.DateTimeField('Дата окончания', blank=True, null=True)
     result = models.TextField('Краткие результаты', blank=True)
-    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE,
-#                                 blank=True, null=True,  # Для возможности создания тестов из Jenkins
-                                 )
+    testplan = models.ForeignKey('TestPlan', on_delete=models.CASCADE)
     task = models.URLField('Задача', blank=True)
-    artifacts = models.URLField('Ссылка на артефакты', blank=True)
+
+    # TODO Remove as Deprecated
+    artifacts = models.URLField('DEPRECATED! Ссылка на артефакты', blank=True,
+                                help_text='Это поле удалим в следующей ревизии',
+                                editable=False,
+                                )
+
     state = models.CharField(max_length=1,
                              choices=TestState.choices,
                              default=TestState.RUNNING_JMETER,
@@ -241,6 +245,17 @@ class Test(models.Model):
         verbose_name_plural = 'Тесты'
 
 
+class ExternalLink(models.Model):
+    test = models.ForeignKey('Test', on_delete=models.CASCADE)
+    url = models.URLField('Ссылка на артефакты', blank=True)
+    description = models.TextField('Описание', blank=True)
+
+    # Простой способ скрыть отображение заголовка в Inline форме, если модель ExternalLink приживётся,
+    # то переписать на переобредение шаблона
+    def __str__(self):
+        return ''
+
+
 class TestPhase(models.Model):
     name = models.CharField('Наименование', max_length=30, help_text='Например, "Рост", "Удержание", "Снижение"')
     # TODO Добавить возможность указания часового пояса <p:1>
@@ -261,8 +276,16 @@ class LoadStation(models.Model):
     has_horizon_agent = models.BooleanField('Является агентом')
     customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE,
                                  blank=True, null=True)
+    cpu_count = models.PositiveSmallIntegerField('Количество ядер, штук', null=True, blank=True)
+    memory_size = models.FloatField('Объём памяти, Гб', null=True, blank=True)
+    disk_size = models.FloatField('Объём диска, Гб', null=True, blank=True)
+    ip = models.GenericIPAddressField('IP', null=True, blank=True)
+    os = models.CharField('Операционная система', max_length=256, null=True, blank=True)
+    soft = models.CharField('Программное обеспечение', max_length=256, null=True, blank=True)
+    description = models.CharField('Описание', null=True, blank=True, max_length=256)
 
     class Meta:
+        ordering = ['customer', 'hostname']
         verbose_name = 'Нагрузочная станция'
         verbose_name_plural = 'Нагрузочные станции'
 
