@@ -171,11 +171,17 @@ class TestPlan(models.Model):
         return self.name
 
     def run_test(self, request):
+
+        from .tasks import run_jmeter_master
+
         test = Test(name=self.name,
                     testplan=self,
                     user=request.user,
                     )
         test.save()
+
+        run_jmeter_master.run(test_id=test.id)
+
         return test
 
     class Meta:
@@ -277,7 +283,8 @@ class LoadStation(models.Model):
     customer = models.ForeignKey('test_storage.Customer', verbose_name='Заказчик', on_delete=models.CASCADE,
                                  blank=True, null=True)
     cpu_count = models.PositiveSmallIntegerField('Количество ядер, штук', null=True, blank=True)
-    memory_size = models.FloatField('Объём памяти, Гб', null=True, blank=True)
+    memory_size = models.FloatField('О'
+                                    'flower==0.9.5бъём памяти, Гб', null=True, blank=True)
     disk_size = models.FloatField('Объём диска, Гб', null=True, blank=True)
     ip = models.GenericIPAddressField('IP', null=True, blank=True)
     os = models.CharField('Операционная система', max_length=256, null=True, blank=True)
