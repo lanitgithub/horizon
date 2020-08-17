@@ -38,11 +38,19 @@ spec:
           requests:
             memory: 256Mi
             cpu: "160m"
+      - name: redis
+        image: redis
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+          - containerPort: 6379
       volumes:
         - name: horizon-volume
           hostPath:
             # Change for prod
-            path: /host_mnt/c/horizon-web-storage
+            path: /host_mnt/d/horizon-web-storage
             type: DirectoryOrCreate
 # Доступ будет по http://127.0.0.1:30000/  (или http://10.126.145.36:30000/)
 # TODO Переделать на ingress https://habr.com/ru/company/southbridge/blog/358824/
