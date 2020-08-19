@@ -47,6 +47,7 @@ class TestAdmin(admin.ModelAdmin):
         (None, {'fields': ['name', 'description']}),
         ('Время теста', {'fields': ['start_time', 'end_time', 'state']}),
         ('Параметры теста', {'fields': ['testplan', 'load_stations']}),
+        ('Runtime', {'fields': ('pod_log', )}),
         ('Результаты теста', {'fields': ['result', 'rps_avg', 'response_time_avg', 'errors_pct',
                                          'successful']}),
         ('Управление проектом', {'fields': ['task', 'user']}),
@@ -56,6 +57,7 @@ class TestAdmin(admin.ModelAdmin):
     list_filter = ('testplan', 'testplan__project', 'successful', ('start_time', PastDateRangeFilter),
                    ('end_time', PastDateRangeFilter), 'user')
     filter_horizontal = ('load_stations',)
+    readonly_fields = ('pod_log', )
     save_on_top = True
     form = TestForm
 
@@ -64,6 +66,15 @@ class TestAdmin(admin.ModelAdmin):
             return "{0} {1}".format(obj.user.first_name, obj.user.last_name)
         else:
             return obj.user.username
+
+    def response_change(self, request, obj):
+        res = super().response_change(request, obj)
+        if "_run-test" in request.POST:
+            obj.start_test()
+            obj.save()
+            self.message_user(request, 'Test ran.')
+            return HttpResponseRedirect(obj.get_admin_url())
+        return res
 
 
 class TestPlanAdmin(admin.ModelAdmin):
@@ -76,9 +87,9 @@ class TestPlanAdmin(admin.ModelAdmin):
 
     def response_change(self, request, obj):
         res = super().response_change(request, obj)
-        if "_run-test" in request.POST:
-            test = obj.run_test(request)
-            self.message_user(request, 'Test ran.')
+        if "_create-test" in request.POST:
+            test = obj.create_test(request)
+            self.message_user(request, 'Test created.')
             return HttpResponseRedirect(test.get_admin_url())
         return res
 

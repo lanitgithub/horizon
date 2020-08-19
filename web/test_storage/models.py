@@ -9,6 +9,7 @@ from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
+from django_fsm import FSMField, transition
 
 
 # TODO: django-adaptors не поддерживает python3, переключиться на использование
@@ -167,20 +168,22 @@ class TestPlan(models.Model):
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     description = models.TextField('Описание', blank=True)
 
+    load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
+                                           help_text='Указываем только станции с которых ПЛАНИРУЕМ подавать нагрузкау',
+                                           )
+
     def __str__(self):
         return self.name
 
-    def run_test(self, request):
-
-        from .tasks import run_jmeter_master
+    def create_test(self, request):
 
         test = Test(name=self.name,
                     testplan=self,
                     user=request.user,
                     )
         test.save()
-
-        run_jmeter_master.run(test_id=test.id)
+        test.load_stations.set(self.load_stations.all())
+        test.save()
 
         return test
 
@@ -195,6 +198,7 @@ class Test(models.Model):
     """
 
     class TestState(models.TextChoices):
+        PREPARE = 'P', _('Подготовка теста инженером')
         RUNNING_JMETER = 'J', _('Running JMeter master')
         COMPLETED = 'C', _('Completed')
 
@@ -212,14 +216,15 @@ class Test(models.Model):
                                 editable=False,
                                 )
 
-    state = models.CharField(max_length=1,
-                             choices=TestState.choices,
-                             default=TestState.RUNNING_JMETER,
-                             )
+    state = FSMField(choices=TestState.choices,
+                     default=TestState.PREPARE,
+                     )
 
+    # TODO Сделать readonly
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
-                                           help_text='Указываем только станции с которых подавалась нагрузка.',
+                                           help_text='Указываем только станции с которых ФАКТИЧЕСКИ подавалась нагрузка.',
                                            )
+
     system_version = models.TextField('Версия системы')
 
     # TODO Переделать на то чтобы метрики Теста (RPS, Error rate,...) автоматически подтягивались из Фаз теста <p:1>
@@ -227,6 +232,8 @@ class Test(models.Model):
     response_time_avg = models.FloatField('Среднее время отклика, сек', blank=True, null=True)
     errors_pct = models.FloatField('% ошибок', blank=True, null=True)
     successful = models.BooleanField('Успешность теста', blank=True, null=True)
+
+    pod_log = models.TextField('Лог автоматического запуска', blank=True)
 
     # TODO Добавить возможность расширять результаты теста на разных проектах разными артефактами
     #   Например, чтобы можно было добавить ссылки на дефекты производительности, заведенные по
@@ -245,6 +252,11 @@ class Test(models.Model):
     def get_admin_url(self):
         return reverse('admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
                        args=[self.id])
+
+    @transition(field=state, source=[TestState.PREPARE, TestState.RUNNING_JMETER], target=TestState.RUNNING_JMETER)
+    def start_test(self):
+        from .tasks import celery_task_start_test
+        celery_task_start_test.delay(test_id=self.id)
 
     class Meta:
         verbose_name = 'Тест'
