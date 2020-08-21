@@ -2,16 +2,23 @@ from __future__ import absolute_import, unicode_literals
 
 import os
 import re
+import logging
 import tempfile
 
+import gitlab
 from kubernetes import config
 from kubernetes.client import Configuration
 from kubernetes.client.api import core_v1_api
 from kubernetes.client.rest import ApiException
-import gitlab
 from celery import shared_task
+from django.utils import timezone
 
 from .models import Test
+from django.conf import settings
+
+
+logger = logging.getLogger(__name__)
+
 
 def _get_jmeter_source(test_id):
     """
@@ -30,7 +37,6 @@ def _get_jmeter_source(test_id):
         pass  # TODO raise exception
 
     url_components = match.groupdict()
-    print(url_components)
 
     gl = gitlab.Gitlab(url_components['main_url'], private_token=jmeter_source.token)
 
@@ -40,7 +46,7 @@ def _get_jmeter_source(test_id):
     project = gl.projects.get(project_id)
 
     temp_dir = tempfile.TemporaryDirectory(prefix='jmeter_sources_')
-    print(temp_dir.name)
+    logger.info('Temp dir dor script created.', temp_dir.name)
 
     base_script_filename = os.path.basename(url_components['path'])
 
@@ -62,19 +68,18 @@ def create_k8s_api_instance():
 
 
 def run_jmeter_master_pod(api_instance, test_id, temp_dir_path):
-    name = f'jmeter-master-test-{test_id}'
+    name = f'{settings.JMETER_MASTER_POD_PREFIX}-{test_id}'
     resp = None
     try:
         resp = api_instance.read_namespaced_pod(name=name,
                                                 namespace='default')
     except ApiException as e:
         if e.status != 404:
-            print("Unknown error: %s" % e)
-            exit(1)
+            logger.error("Unknown error: %s" % e)
 
     if not resp:
 
-        print("Pod %s does not exist. Creating it..." % name)
+        logger.info("Pod %s does not exist. Creating it..." % name)
         pod_manifest = {
             'apiVersion': 'v1',
             'kind': 'Pod',
@@ -118,28 +123,26 @@ def celery_task_start_test(test_id):
     k8s = create_k8s_api_instance()
     run_jmeter_master_pod(k8s, test_id, temp_dir.name)
 
+    test = Test.objects.get(pk=test_id)
+    test.start_time = timezone.now()
+    test.save(update_fields=['start_time'])
+
     # Запустить beat таск, который будет синхронизировать состояние пода из k8s в нашу БД
     from celery import current_app
     app = current_app._get_current_object()
     res = app.add_periodic_task(2.0, celery_task_pull_pod_data.s('Hello'))
-    print('Sync data from k8s scheduled.' + res)
+    logger.debug('Sync data from k8s scheduled.' + res)
 
 
 from web.celery import app as celery_app
-
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     # Calls test('hello') every 10 seconds.
-    print('aaaaaaaaa')
-    sender.add_periodic_task(10.0, test.s('hello'))
+    logger.debug('setup_periodic_tasks')
+    sender.add_periodic_task(5.0, celery_task_pull_pod_data.s('hello'))
+
 
 @celery_app.task
-def test(arg):
-    print(arg)
-
-
-
-@shared_task
 def celery_task_pull_pod_data(*args):
     """
     Задача, которая будет периодически вызываться для подтягивания логов пода из k8s
@@ -148,7 +151,18 @@ def celery_task_pull_pod_data(*args):
     # TODO Создать отдельную модель OneToOne для запуска пода и сохранения его результатов,
     #    в текущем подходе сохранение теста из любого другого места перётрёт изменения pod_log
     #    Или подтягивать логи напрямую из k8s для отображения, а в БД переносить только при удалении пода
-    print('Pulling pod data...')
-    test = Test.objects.get(pk=6)
-    test.pod_log = '.........................'
-    test.save(update_fields=['pod_log'])
+    k8s = create_k8s_api_instance()
+    logger.debug('Pulling pod data...')
+
+    for test in Test.objects.filter(state=Test.TestState.RUNNING_JMETER):
+        pod_name = f'{settings.JMETER_MASTER_POD_PREFIX}-{test.id}'
+        try:
+            resp = k8s.read_namespaced_pod(name=pod_name,
+                                           namespace='default')
+        except ApiException as e:
+            if e.status != 404:
+                logger.warning("Failed k8s api call", test, e)
+            continue
+        if resp.status.phase == 'Succeeded':
+            api_response = k8s.read_namespaced_pod_log(name=pod_name, namespace='default')
+            test.test_completed(api_response)

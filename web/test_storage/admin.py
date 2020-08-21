@@ -57,7 +57,7 @@ class TestAdmin(admin.ModelAdmin):
     list_filter = ('testplan', 'testplan__project', 'successful', ('start_time', PastDateRangeFilter),
                    ('end_time', PastDateRangeFilter), 'user')
     filter_horizontal = ('load_stations',)
-    readonly_fields = ('pod_log', )
+    readonly_fields = ('pod_log', 'state')
     save_on_top = True
     form = TestForm
 

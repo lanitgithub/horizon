@@ -7,6 +7,7 @@ from datetime import datetime
 
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 from django_fsm import FSMField, transition
@@ -253,10 +254,17 @@ class Test(models.Model):
         return reverse('admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
                        args=[self.id])
 
-    @transition(field=state, source=[TestState.PREPARE, TestState.RUNNING_JMETER], target=TestState.RUNNING_JMETER)
+    @transition(field=state, source=[TestState.PREPARE], target=TestState.RUNNING_JMETER)
     def start_test(self):
         from .tasks import celery_task_start_test
         celery_task_start_test.delay(test_id=self.id)
+
+    @transition(field=state, source=[TestState.RUNNING_JMETER], target=TestState.COMPLETED)
+    def test_completed(self, log):
+        self.state = Test.TestState.COMPLETED
+        self.pod_log = log
+        self.end_time = timezone.now()
+        self.save(update_fields=['state', 'pod_log', 'end_time'])
 
     class Meta:
         verbose_name = 'Тест'

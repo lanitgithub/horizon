@@ -134,3 +134,4 @@ upload
 private_*
 *.bak
 *secret.yaml
+celerybeat-*

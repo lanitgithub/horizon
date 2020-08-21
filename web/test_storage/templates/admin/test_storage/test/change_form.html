@@ -3,7 +3,9 @@
 
 {% block submit_buttons_bottom %}
     {{ block.super }}
-    <div class="submit-row">
-            <input type="submit" value="Запустить тест" name="_run-test">
-    </div>
+    {% if original.state == "P" %}
+        <div class="submit-row">
+                <input type="submit" value="Запустить тест" name="_run-test">
+        </div>
+    {% endif %}
 {% endblock %}
