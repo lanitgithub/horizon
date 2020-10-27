@@ -16,4 +16,3 @@ coverage.xml
 *.log
 .git
 */upload
-*private*
