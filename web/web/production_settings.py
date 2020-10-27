@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 
 import os
 
+from .common_settings import *
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -36,7 +37,6 @@ ALLOWED_HOSTS = ['rnd.lanit.ru',
                  '10.126.145.36',
                  '192.168.201.91',
                  '192.168.88.91',
-                 'master-1.k8s.rnd.lanit.ru',
                  '185.93.255.22',
                  '127.0.0.1',
                  'localhost']
@@ -181,3 +181,9 @@ sentry_sdk.init(
     # django.contrib.auth) you may enable sending PII data.
     send_default_pii=True
 )
+
+CELERY_BROKER_URL = 'redis://redis-service:6379'
+CELERY_RESULT_BACKEND = 'redis://redis-service:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'

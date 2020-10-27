@@ -2,14 +2,24 @@
 # -*- coding: utf-8 -*-
 # vim: fileencoding=utf-8
 
+import os
 import _csv
+import logging
+import shutil
+import tempfile
+import zipfile
 from datetime import datetime
 
+import jmespath
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
+from django_fsm import FSMField, transition
 
+
+logger = logging.getLogger(__name__)
 
 # TODO: django-adaptors не поддерживает python3, переключиться на использование
 #  https://github.com/edcrewe/django-csvimport  <p:0>
@@ -108,12 +118,14 @@ class Project(models.Model):
 
 class JmeterSource(models.Model):
     url = models.URLField('Ссылка на скрипт в gitlab')
+    # TODO Токенами неудобно пользоваться, потому что токен привязан к пользователю и позволяет увидеть всё что доступно пользователю
+      # Возможным решением является создание пользователя для CАНТ в гитлаб и генерация токена от этого пользователя. Подумать.
     token = models.CharField('Токен',
                              max_length=30,
                              blank=True,
                              help_text='Токен сгенерировать можно по ссылке: '
                                        'https://gitlab.dks.lanit.ru/profile/personal_access_tokens'
-                                       'Необходимые права(scopes): "read_repository"')
+                                       'Необходимые права(scopes): "read_api, read_repository"')
 
     def __str__(self):
         return self.url
@@ -167,15 +179,26 @@ class TestPlan(models.Model):
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     description = models.TextField('Описание', blank=True)
 
+    load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
+                                           help_text='Указываем только станции с которых ПЛАНИРУЕМ подавать нагрузкау',
+                                           )
+
+    # Оставляю закомментированным потому что это может быть лишним, правильнее сразу приучать к STS. Чтобы не усложнять
+    # data_pools = models.ManyToManyField('ExternalDataPool', verbose_name='Файл с тестовыми данными',
+
     def __str__(self):
         return self.name
 
-    def run_test(self, request):
+    def create_test(self, request):
+
         test = Test(name=self.name,
                     testplan=self,
                     user=request.user,
                     )
         test.save()
+        test.load_stations.set(self.load_stations.all())
+        test.save()
+
         return test
 
     class Meta:
@@ -189,6 +212,7 @@ class Test(models.Model):
     """
 
     class TestState(models.TextChoices):
+        PREPARE = 'P', _('Подготовка теста инженером')
         RUNNING_JMETER = 'J', _('Running JMeter master')
         COMPLETED = 'C', _('Completed')
 
@@ -206,14 +230,16 @@ class Test(models.Model):
                                 editable=False,
                                 )
 
-    state = models.CharField(max_length=1,
-                             choices=TestState.choices,
-                             default=TestState.RUNNING_JMETER,
-                             )
+    state = FSMField(choices=TestState.choices,
+                     default=TestState.PREPARE,
+                     )
 
+    # TODO Сделать readonly
     load_stations = models.ManyToManyField('LoadStation', verbose_name='Список станций',
-                                           help_text='Указываем только станции с которых подавалась нагрузка.',
+                                           help_text='Указываем только станции с которых ФАКТИЧЕСКИ подавалась нагрузка.',
                                            )
+    # TODO Ассёрт на сохранение теста и самих станций (если они привязаны к тесту и с галочкой "Является агентом" без айпшников)
+
     system_version = models.TextField('Версия системы')
 
     # TODO Переделать на то чтобы метрики Теста (RPS, Error rate,...) автоматически подтягивались из Фаз теста <p:1>
@@ -221,6 +247,8 @@ class Test(models.Model):
     response_time_avg = models.FloatField('Среднее время отклика, сек', blank=True, null=True)
     errors_pct = models.FloatField('% ошибок', blank=True, null=True)
     successful = models.BooleanField('Успешность теста', blank=True, null=True)
+
+    pod_log = models.TextField('Лог автоматического запуска', blank=True)
 
     # TODO Добавить возможность расширять результаты теста на разных проектах разными артефактами
     #   Например, чтобы можно было добавить ссылки на дефекты производительности, заведенные по
@@ -240,6 +268,31 @@ class Test(models.Model):
         return reverse('admin:%s_%s_change' % (self._meta.app_label, self._meta.model_name),
                        args=[self.id])
 
+    @transition(field=state, source=[TestState.PREPARE], target=TestState.RUNNING_JMETER)
+    def start_test(self):
+        from .tasks import celery_task_start_test
+        celery_task_start_test.delay(test_id=self.id)
+
+    @transition(field=state, source=[TestState.RUNNING_JMETER], target=TestState.COMPLETED)
+    def test_completed(self, log):
+        self.state = Test.TestState.COMPLETED
+        self.pod_log = log
+        self.end_time = timezone.now()
+        self.save(update_fields=['state', 'pod_log', 'end_time'])
+
+    # TODO Добавить проверку активности станций перед запуском
+    # TODO Добавить проверку агент / не агент
+    def _compose_remote_host_arg(self):
+        station_ips = [station.ip for station in self.load_stations.all() if station.ip]
+        return '-R {0}'.format(','.join(station_ips))
+
+    def get_master_path(self):
+        """
+        Возвращает путь хостовой ноды, где хранятся скрипт и результаты запуска.
+        :return:
+        """
+        return os.path.join(settings.JMETER_MASTER_DIR, f'{settings.JMETER_MASTER_POD_PREFIX}-{self.id}')
+
     class Meta:
         verbose_name = 'Тест'
         verbose_name_plural = 'Тесты'
@@ -254,6 +307,14 @@ class ExternalLink(models.Model):
     # то переписать на переобредение шаблона
     def __str__(self):
         return ''
+
+
+#class ExternalDataPool(models.Model):
+#    name = models.CharField('Название', blank=True, max_length=128)
+#    url = models.URLField('Ссылка на файл с тестовыми данными')
+
+#    def __str__(self):
+#        return self.name
 
 
 class TestPhase(models.Model):
