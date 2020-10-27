@@ -182,8 +182,8 @@ sentry_sdk.init(
     send_default_pii=True
 )
 
-CELERY_BROKER_URL = 'redis://redis-service:6379'
-CELERY_RESULT_BACKEND = 'redis://redis-service:6379'
+CELERY_BROKER_URL = 'redis://10.126.145.36:6379'
+CELERY_RESULT_BACKEND = 'redis://10.126.145.36:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
